@@ -91,6 +91,12 @@ cuConvFloat::cuConvFloat(
     cudaErrChk( cudaMalloc(&d_input, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W) );
     cudaErrChk( cudaMalloc(&d_output, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W) );
     cudaErrChk( cudaMalloc(&d_filter, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W) );
+
+    /******************************************************************
+     * 6. Initialize filter
+     *******************************************************************/
+    std::generate(h_filter, h_filter+OUTPUT_C*INPUT_C*FILTER_H*FILTER_W, [](){return (std::rand()%101-50)/10;});
+    cudaErrChk( cudaMemcpy(d_filter, h_filter, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W, cudaMemcpyHostToDevice) );
 }
 
 
@@ -98,9 +104,8 @@ cuConvFloat::cuConvFloat(
 
 cuConvFloat::~cuConvFloat() {
 
-
     /******************************************************************
-     * 8. Finallize
+     * Finallize
      *******************************************************************/
      free (h_input);
      free (h_output);
@@ -144,4 +149,9 @@ void cuConvFloat::forward(float* input) {
 
 void cuConvFloat::backward(float* back_grad) {
 
+}
+
+void cuConvFloat::set_weight(float* filter_) {
+    memcpy(h_filter, filter_, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W);
+    cudaErrChk( cudaMemcpy(d_filter, h_filter, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W, cudaMemcpyHostToDevice) );
 }
