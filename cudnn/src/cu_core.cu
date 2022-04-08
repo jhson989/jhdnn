@@ -1,5 +1,8 @@
 #include <jhdnn.cuh>
 
+
+cudnnHandle_t* cudnn;
+
 /***************************************************************
  * Debug code
  ***************************************************************/
@@ -13,29 +16,4 @@ void cudaAssert(cudaError_t code, const char *file, int line) {
    if (code != cudaSuccess) {
       fprintf(stderr,"CUDA assert: %s %s %d\n", cudaGetErrorString(code), file, line);
    }
-}
-
-
-
-
-/***************************************************************
- * Layer
- ***************************************************************/
-cuLayerFloat::cuLayerFloat() {
-
-
-}
-
-
-cuLayerFloat::~cuLayerFloat() {
-
-
-}
-
-void cuLayerFloat::forward(float* input) {
-
-}
-
-void cuLayerFloat::backward(float* input_grad) {
-
 }

@@ -44,11 +44,13 @@ set_target_properties(
 
 
 # Install
-set(LIB_INSTALL /home/jhson/.lib/)
-set(INC_INSTALL /home/jhson/.include/)
+set(PATH_LIB_INSTALL /home/jhson/.lib/)
+set(PATH_INC_INSTALL /home/jhson/.include/)
 
 install(
     TARGETS ${LIB_NAME}
-    LIBRARY DESTINATION ${LIB_INSTALL}
-    PUBLIC_HEADER DESTINATION ${INC_INSTALL}
+    LIBRARY DESTINATION ${PATH_LIB_INSTALL}
+    PUBLIC_HEADER DESTINATION ${PATH_INC_INSTALL}
 )
+
+add_subdirectory(test)

@@ -15,13 +15,13 @@ void cudaAssert(cudaError_t code, const char *file, int line);
 
 
 
+
 /***************************************************************
  * Layer
  ***************************************************************/
 class cuLayerFloat {
 
-    private:
-
+    protected:
         cudnnTensorDescriptor_t desc_input;
         cudnnTensorDescriptor_t desc_output;
         size_t bytes_workspace;
@@ -38,8 +38,8 @@ class cuLayerFloat {
         float* d_output;
 
     public:
-        cuLayerFloat();
-        ~cuLayerFloat();
-        void forward(float* input);
-        void backward(float* back_grad);
+        cuLayerFloat(){};
+        ~cuLayerFloat(){};
+        virtual void forward(float* input){};
+        virtual void backward(float* back_grad){};
 };

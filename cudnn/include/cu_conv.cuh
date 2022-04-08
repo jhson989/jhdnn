@@ -1,2 +1,49 @@
 #pragma once
 #include <cudnn.h>
+#include <cu_core.cuh>
+
+class cuConvFloat : public cuLayerFloat {
+
+    private:
+
+        /** Data **/
+        cudnnDataType_t data_type = CUDNN_DATA_FLOAT;
+        const int BATCH_NUM;
+        const int INPUT_C; const int INPUT_H; const int INPUT_W;
+        const int OUTPUT_C; const int OUTPUT_H; const int OUTPUT_W;
+        const int FILTER_H; const int FILTER_W;
+        const int PAD_H; const int PAD_W;
+        const int STRIDE_H; const int STRIDE_W; 
+        const int DILATION_H; const int DILATION_W;
+        
+
+        /** Convolution **/
+        cudnnFilterDescriptor_t desc_filter;
+        cudnnConvolutionDescriptor_t desc_conv2d;
+        int num_conv2d_algo;
+        cudnnConvolutionFwdAlgoPerf_t perf_conv2d_algo;
+
+        /** Host memory **/
+        float* h_filter;
+
+        /** Device memory **/
+        float* d_filter;
+
+    public:
+        cuConvFloat(
+            const int BATCH_NUM, 
+            const int INPUT_C, const int INPUT_H,const int INPUT_W, 
+            const int OUTPUT_C, const int OUTPUT_H, const int OUTPUT_W,
+            const int FILTER_H, const int FILTER_W, 
+            const int PAD_H=1, const int PAD_W=1, 
+            const int STRIDE_H=1, const int STRIDE_W=1, 
+            const int DILATION_H=1, const int DILATION_W=1
+        );
+
+        ~cuConvFloat();
+
+        virtual void forward(float* input) override;
+        virtual void backward(float* back_grad) override;
+
+
+};
