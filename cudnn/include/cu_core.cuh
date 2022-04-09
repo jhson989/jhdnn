@@ -14,8 +14,8 @@
 #define cudaErrChk(ans) { cudaAssert((ans), __FILE__, __LINE__); }
 void cudnnAssert(cudnnStatus_t code, const char *file, int line);
 void cudaAssert(cudaError_t code, const char *file, int line);
-
-
+void cudnn_create();
+void cudnn_destroy();
 
 
 /***************************************************************

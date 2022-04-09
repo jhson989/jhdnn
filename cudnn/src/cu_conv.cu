@@ -17,15 +17,6 @@ cuConvFloat::cuConvFloat(
 {
 
     /******************************************************************
-     * 1. Define cudnn Handler
-     *******************************************************************/
-    if (cudnn == nullptr) {
-        cudnn = new cudnnHandle_t;
-        cudnnErrChk( cudnnCreate(cudnn) );
-    }
-
-
-    /******************************************************************
      * 2. Describe Conv2D operands
      *    - Input tensor : size, layout
      *    - Output tensor : size, layout
@@ -55,7 +46,6 @@ cuConvFloat::cuConvFloat(
         desc_dy,
         /*LAYOUT*/CUDNN_TENSOR_NCHW, /*DATATYPE*/data_type, /*N*/BATCH_NUM, /*C*/ OUTPUT_C, /*H*/OUTPUT_H, /*W*/OUTPUT_W
     ) );
-
 
 
     /******************************************************************
@@ -89,14 +79,12 @@ cuConvFloat::cuConvFloat(
         *cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, 1, &num_conv2d_algo_backward, &perf_conv2d_algo_backward
     ) );
 
-
     /******************************************************************
      * 4. Calculate work-space size for forward and backward
      *******************************************************************/
     cudnnErrChk( cudnnGetConvolutionForwardWorkspaceSize(*cudnn, desc_input, desc_filter, desc_conv2d, desc_output, perf_conv2d_algo_forward.algo, &bytes_workspace_forward) );
     cudnnErrChk( cudnnGetConvolutionBackwardDataWorkspaceSize(*cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, perf_conv2d_algo_backward.algo, &bytes_workspace_backward) );
   
-
     /******************************************************************
      * 5. Allocate memory
      *    - work-space
@@ -110,13 +98,12 @@ cuConvFloat::cuConvFloat(
     //h_output = (float*) malloc(sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
     //h_dx = (float*) malloc(sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W);
     //h_dy = (float*) malloc(sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
-    //h_filter = (float*) malloc(sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W);
+    h_filter = (float*) malloc(sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W);
     cudaErrChk( cudaMalloc(&d_input, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W) );
     cudaErrChk( cudaMalloc(&d_output, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W) );
     cudaErrChk( cudaMalloc(&d_dx, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W) );
     cudaErrChk( cudaMalloc(&d_dy, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W) );
     cudaErrChk( cudaMalloc(&d_filter, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W) );
-
     /******************************************************************
      * 6. Initialize filter
      *******************************************************************/
@@ -134,7 +121,9 @@ cuConvFloat::~cuConvFloat() {
      *******************************************************************/
     //free (h_input);
     //free (h_output);
-    //free (h_filter);
+    //free (h_dx);
+    //free (h_dy);
+    free (h_filter);
 
     cudaErrChk( cudaFree(d_workspace_forward) );
     cudaErrChk( cudaFree(d_input) );
@@ -168,8 +157,7 @@ void cuConvFloat::forward(float* input) {
                                         , /*BETA*/&beta
                                         , /*OUTPUT*/desc_output, d_output
                                     ) );
- 
-
+    cudaErrChk( cudaDeviceSynchronize() );
 
     /******************************************************************
      * 7. Get result
@@ -184,6 +172,7 @@ void cuConvFloat::backward(float* dy) {
      * 6. Launch backward kernel
      *******************************************************************/
     const float alpha=1, beta=0;
+    printf("start backward?\n");
     cudnnErrChk( cudnnConvolutionBackwardData(*cudnn
                                         , /*ALPHA*/&alpha
                                         , /*KERNEL*/desc_filter, d_filter
@@ -192,7 +181,8 @@ void cuConvFloat::backward(float* dy) {
                                         , /*BETA*/&beta
                                         , /*dx*/desc_dx, d_dx
                                     ) );
- 
+    cudaErrChk( cudaDeviceSynchronize() );
+    printf("end backward?\n");
 
 
 
