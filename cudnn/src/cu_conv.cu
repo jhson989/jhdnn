@@ -173,10 +173,14 @@ void cuConvFloat::backward(float* dy) {
      *******************************************************************/
     const float alpha=1, beta=0;
     printf("start backward?\n");
+    printf("size : %lu\n",bytes_workspace_forward);
+    printf("size : %lu\n",bytes_workspace_backward);
+    printf("num: %d\n", num_conv2d_algo_forward);
+    printf("num: %d\n", num_conv2d_algo_backward);
     cudnnErrChk( cudnnConvolutionBackwardData(*cudnn
                                         , /*ALPHA*/&alpha
                                         , /*KERNEL*/desc_filter, d_filter
-                                        , /*dy*/desc_dy, dy
+                                        , /*dy*/desc_dy, d_dy
                                         , /*LAYER*/desc_conv2d, perf_conv2d_algo_backward.algo, d_workspace_backward, bytes_workspace_backward
                                         , /*BETA*/&beta
                                         , /*dx*/desc_dx, d_dx

@@ -8,7 +8,7 @@ int main(void) {
     
     cudnn_create();
     cuConvFloat conv(
-        128, 3, 128, 128,
+        3, 3, 128, 128,
         3, 128, 128,
         3, 3
     );
@@ -36,6 +36,7 @@ int main(void) {
     std::vector<float> dy(3*1*128*128, 1);
     cudaErrChk( cudaMalloc(&d_dy, sizeof(float)*3*1*128*128) );
     cudaErrChk( cudaMemcpy(d_dy, dy.data(), sizeof(float)*3*1*128*128, cudaMemcpyHostToDevice) );
+    cudaErrChk( cudaDeviceSynchronize() );
 
     conv.forward(d_input);
     conv.backward(d_dy);
