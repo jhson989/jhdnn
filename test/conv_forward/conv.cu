@@ -29,7 +29,7 @@ int main(void) {
     std::generate( input.begin(), input.end(), [](){ return ((std::rand()%101-50)%10); } );
     cudaErrChk( cudaMalloc(&d_input, sizeof(float)*128*1*128*128) );
     cudaErrChk( cudaMemcpy(d_input, input.data(), sizeof(float)*128*1*128*128, cudaMemcpyHostToDevice) );
-    conv.set_weight(filter);
+    conv.set_weights(filter);
 
     return 0;    
 }

@@ -15,13 +15,16 @@ class cuConvFloat : public cuLayerFloat {
         const int PAD_H; const int PAD_W;
         const int STRIDE_H; const int STRIDE_W; 
         const int DILATION_H; const int DILATION_W;
-        
 
-        /** Convolution **/
+        /** Convolution forward **/
         cudnnFilterDescriptor_t desc_filter;
         cudnnConvolutionDescriptor_t desc_conv2d;
-        int num_conv2d_algo;
-        cudnnConvolutionFwdAlgoPerf_t perf_conv2d_algo;
+        int num_conv2d_algo_forward;
+        cudnnConvolutionFwdAlgoPerf_t perf_conv2d_algo_forward;
+
+        /** Convolution backward **/
+        int num_conv2d_algo_backward;
+        cudnnConvolutionBwdDataAlgoPerf_t perf_conv2d_algo_backward;
 
         /** Host memory **/
         float* h_filter;
@@ -43,8 +46,8 @@ class cuConvFloat : public cuLayerFloat {
         ~cuConvFloat();
 
         virtual void forward(float* input) override;
-        virtual void backward(float* back_grad) override;
-        void set_weight(float* filter_);
+        virtual void backward(float* dy) override;
+        void set_weights(float* filter_);
 
 
 };

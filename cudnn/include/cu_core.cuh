@@ -26,16 +26,22 @@ class cuLayerFloat {
     protected:
         cudnnTensorDescriptor_t desc_input;
         cudnnTensorDescriptor_t desc_output;
-        size_t bytes_workspace;
+        cudnnTensorDescriptor_t desc_dx;
+        cudnnTensorDescriptor_t desc_dy;
+        size_t bytes_workspace_forward;
+        size_t bytes_workspace_backward;
 
         /** Host memory **/
-        float* h_grad;
+        float* h_dx;
+        float* h_dy;
         float* h_input;
         float* h_output;
 
         /** Device memory **/
-        float* d_workspace;
-        float* d_grad;
+        float* d_workspace_forward;
+        float* d_workspace_backward;
+        float* d_dx;
+        float* d_dy;
         float* d_input;
         float* d_output;
 
@@ -43,5 +49,5 @@ class cuLayerFloat {
         cuLayerFloat(){};
         ~cuLayerFloat(){};
         virtual void forward(float* input){};
-        virtual void backward(float* back_grad){};
+        virtual void backward(float* dy){};
 };
