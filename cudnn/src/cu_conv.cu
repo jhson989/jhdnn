@@ -172,11 +172,6 @@ void cuConvFloat::backward(float* dy) {
      * 6. Launch backward kernel
      *******************************************************************/
     const float alpha=1, beta=0;
-    printf("start backward?\n");
-    printf("size : %lu\n",bytes_workspace_forward);
-    printf("size : %lu\n",bytes_workspace_backward);
-    printf("num: %d\n", num_conv2d_algo_forward);
-    printf("num: %d\n", num_conv2d_algo_backward);
     cudnnErrChk( cudnnConvolutionBackwardData(*cudnn
                                         , /*ALPHA*/&alpha
                                         , /*KERNEL*/desc_filter, d_filter
@@ -186,11 +181,6 @@ void cuConvFloat::backward(float* dy) {
                                         , /*dx*/desc_dx, d_dx
                                     ) );
     cudaErrChk( cudaDeviceSynchronize() );
-    printf("end backward?\n");
-
-
-
-
 
 }
 
