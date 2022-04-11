@@ -16,7 +16,7 @@ set(LIB_NAME jhdnn)
 # Global include
 set(PATH_INC ./include)
 set(INC_FILES 
-    "./include/jhdnn.cuh\;cudnn/include/cu_core.cuh\;cudnn/include/cu_conv.cuh"
+    "./include/jhdnn.cuh\;cudnn/include/cu_core.cuh\;cudnn/include/cu_conv.cuh\;jhdnn/include/jh_core.cuh\;jhdnn/include/jh_conv.cuh"
 )
 
 # cudnn include
@@ -29,9 +29,11 @@ set(SRC_CUDNN_FILES
 # jhdnn include
 set(PATH_JHDNN_INC ./jhdnn/include)
 set(SRC_JHDNN_FILES
+    jhdnn/src/jh_core.cu
+    jhdnn/src/jh_conv.cu
 )
 
-add_library(${LIB_NAME} SHARED ${SRC_CUDNN_FILES})
+add_library(${LIB_NAME} SHARED ${SRC_CUDNN_FILES} ${SRC_JHDNN_FILES})
 target_include_directories(
     ${LIB_NAME} 
     PUBLIC ${PATH_INC} ${PATH_CUDNN_INC} ${PATH_JHDNN_INC}

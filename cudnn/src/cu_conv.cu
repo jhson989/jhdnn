@@ -139,10 +139,11 @@ cuConvFloat::~cuConvFloat() {
     free (h_filter);
 
     cudaErrChk( cudaFree(d_workspace_forward) );
-    cudaErrChk( cudaFree(d_x) );
-    cudaErrChk( cudaFree(d_y) );
     cudaErrChk( cudaFree(d_workspace_backward_data) );
     cudaErrChk( cudaFree(d_workspace_backward_filter) );
+    
+    cudaErrChk( cudaFree(d_x) );
+    cudaErrChk( cudaFree(d_y) );
     cudaErrChk( cudaFree(d_dx) );
     cudaErrChk( cudaFree(d_dy) );
     cudaErrChk( cudaFree(d_filter) );
