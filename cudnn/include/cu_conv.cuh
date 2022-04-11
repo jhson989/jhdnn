@@ -18,19 +18,25 @@ class cuConvFloat : public cuLayerFloat {
 
         /** Convolution forward **/
         cudnnFilterDescriptor_t desc_filter;
+        cudnnFilterDescriptor_t desc_dw;
         cudnnConvolutionDescriptor_t desc_conv2d;
         int num_conv2d_algo_forward;
         cudnnConvolutionFwdAlgoPerf_t perf_conv2d_algo_forward;
 
         /** Convolution backward **/
-        int num_conv2d_algo_backward;
-        cudnnConvolutionBwdDataAlgoPerf_t perf_conv2d_algo_backward;
+        int num_conv2d_algo_backward_data;
+        cudnnConvolutionBwdDataAlgoPerf_t perf_conv2d_algo_backward_data;
+        int num_conv2d_algo_backward_filter;
+        cudnnConvolutionBwdFilterAlgoPerf_t perf_conv2d_algo_backward_filter;
 
         /** Host memory **/
         float* h_filter;
 
         /** Device memory **/
         float* d_filter;
+        float* d_dw;
+        size_t bytes_workspace_backward_filter;
+        float* d_workspace_backward_filter;
 
     public:
         cuConvFloat(

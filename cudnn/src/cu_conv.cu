@@ -62,6 +62,13 @@ cuConvFloat::cuConvFloat(
         /*DATATYPE*/data_type, /*LAYOUT*/CUDNN_TENSOR_NCHW, /*OUT_CH*/OUTPUT_C, /*IN_CH*/ INPUT_C, /*KERNEL_H*/FILTER_H, /*KERNEL_W*/FILTER_W
     ) );
 
+    // Filter (weights) backward
+    cudnnErrChk( cudnnCreateFilterDescriptor(&desc_dw) );
+    cudnnErrChk( cudnnSetFilter4dDescriptor(
+        desc_dw,
+        /*DATATYPE*/data_type, /*LAYOUT*/CUDNN_TENSOR_NCHW, /*OUT_CH*/OUTPUT_C, /*IN_CH*/ INPUT_C, /*KERNEL_H*/FILTER_H, /*KERNEL_W*/FILTER_W
+    ) );
+
     // Layer 
     cudnnErrChk( cudnnCreateConvolutionDescriptor(&desc_conv2d) );
     cudnnErrChk( cudnnSetConvolution2dDescriptor(
@@ -76,14 +83,18 @@ cuConvFloat::cuConvFloat(
 
     // Backward algorithm
     cudnnErrChk( cudnnFindConvolutionBackwardDataAlgorithm(
-        *cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, 1, &num_conv2d_algo_backward, &perf_conv2d_algo_backward
+        *cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, 1, &num_conv2d_algo_backward_data, &perf_conv2d_algo_backward_data
+    ) );
+    cudnnErrChk( cudnnFindConvolutionBackwardFilterAlgorithm(
+        *cudnn, desc_input, desc_dy, desc_conv2d, desc_dw, 1, &num_conv2d_algo_backward_filter, &perf_conv2d_algo_backward_filter
     ) );
 
     /******************************************************************
      * 4. Calculate work-space size for forward and backward
      *******************************************************************/
     cudnnErrChk( cudnnGetConvolutionForwardWorkspaceSize(*cudnn, desc_input, desc_filter, desc_conv2d, desc_output, perf_conv2d_algo_forward.algo, &bytes_workspace_forward) );
-    cudnnErrChk( cudnnGetConvolutionBackwardDataWorkspaceSize(*cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, perf_conv2d_algo_backward.algo, &bytes_workspace_backward) );
+    cudnnErrChk( cudnnGetConvolutionBackwardDataWorkspaceSize(*cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, perf_conv2d_algo_backward_data.algo, &bytes_workspace_backward_data) );
+    cudnnErrChk( cudnnGetConvolutionBackwardFilterWorkspaceSize(*cudnn, desc_input, desc_dy, desc_conv2d, desc_dw, perf_conv2d_algo_backward_filter.algo, &bytes_workspace_backward_filter) );
   
     /******************************************************************
      * 5. Allocate memory
@@ -92,7 +103,8 @@ cuConvFloat::cuConvFloat(
      *    - GPU : input, output, dx, dy, kernel
      *******************************************************************/
     cudaErrChk (cudaMalloc (&d_workspace_forward, bytes_workspace_forward));
-    cudaErrChk (cudaMalloc (&d_workspace_backward, bytes_workspace_backward));
+    cudaErrChk (cudaMalloc (&d_workspace_backward_data, bytes_workspace_backward_data));
+    cudaErrChk (cudaMalloc (&d_workspace_backward_filter, bytes_workspace_backward_filter));
  
     //h_input = (float*) malloc(sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W);
     //h_output = (float*) malloc(sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
@@ -104,6 +116,7 @@ cuConvFloat::cuConvFloat(
     cudaErrChk( cudaMalloc(&d_dx, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W) );
     cudaErrChk( cudaMalloc(&d_dy, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W) );
     cudaErrChk( cudaMalloc(&d_filter, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W) );
+    cudaErrChk( cudaMalloc(&d_dw, sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W) );
     /******************************************************************
      * 6. Initialize filter
      *******************************************************************/
@@ -128,7 +141,8 @@ cuConvFloat::~cuConvFloat() {
     cudaErrChk( cudaFree(d_workspace_forward) );
     cudaErrChk( cudaFree(d_input) );
     cudaErrChk( cudaFree(d_output) );
-    cudaErrChk( cudaFree(d_workspace_backward) );
+    cudaErrChk( cudaFree(d_workspace_backward_data) );
+    cudaErrChk( cudaFree(d_workspace_backward_filter) );
     cudaErrChk( cudaFree(d_dx) );
     cudaErrChk( cudaFree(d_dy) );
     cudaErrChk( cudaFree(d_filter) );
@@ -139,6 +153,7 @@ cuConvFloat::~cuConvFloat() {
     cudnnErrChk( cudnnDestroyTensorDescriptor(desc_dy) );
 
     cudnnErrChk( cudnnDestroyFilterDescriptor(desc_filter) );
+    cudnnErrChk( cudnnDestroyFilterDescriptor(desc_dw) );
 
 }
 
@@ -171,17 +186,27 @@ void cuConvFloat::backward(float* dy) {
     /******************************************************************
      * 6. Launch backward kernel
      *******************************************************************/
+    
     const float alpha=1, beta=0;
     cudnnErrChk( cudnnConvolutionBackwardData(*cudnn
                                         , /*ALPHA*/&alpha
                                         , /*KERNEL*/desc_filter, d_filter
                                         , /*dy*/desc_dy, d_dy
-                                        , /*LAYER*/desc_conv2d, perf_conv2d_algo_backward.algo, d_workspace_backward, bytes_workspace_backward
+                                        , /*LAYER*/desc_conv2d, perf_conv2d_algo_backward_data.algo, d_workspace_backward_data, bytes_workspace_backward_data
                                         , /*BETA*/&beta
                                         , /*dx*/desc_dx, d_dx
                                     ) );
+    
+    cudnnErrChk( cudnnConvolutionBackwardFilter(*cudnn
+                                        , /*ALPHA*/&alpha
+                                        , /*x*/desc_input, d_input
+                                        , /*dy*/desc_dy, d_dy
+                                        , /*LAYER*/desc_conv2d, perf_conv2d_algo_backward_filter.algo, d_workspace_backward_filter, bytes_workspace_backward_filter
+                                        , /*BETA*/&beta
+                                        , /*dw*/desc_dw, d_dw
+                                    ) );
+    
     cudaErrChk( cudaDeviceSynchronize() );
-
 }
 
 void cuConvFloat::set_weights(float* filter_) {

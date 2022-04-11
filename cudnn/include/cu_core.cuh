@@ -29,7 +29,7 @@ class cuLayerFloat {
         cudnnTensorDescriptor_t desc_dx;
         cudnnTensorDescriptor_t desc_dy;
         size_t bytes_workspace_forward;
-        size_t bytes_workspace_backward;
+        size_t bytes_workspace_backward_data;
 
         /** Host memory **/
         float* h_dx;
@@ -39,7 +39,7 @@ class cuLayerFloat {
 
         /** Device memory **/
         float* d_workspace_forward;
-        float* d_workspace_backward;
+        float* d_workspace_backward_data;
         float* d_dx;
         float* d_dy;
         float* d_input;
