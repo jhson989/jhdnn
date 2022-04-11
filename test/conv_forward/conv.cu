@@ -13,7 +13,12 @@ int main(void) {
     cudaErrChk( cudaMemcpy(d_input, input.data(), sizeof(float)*3*1*128*128, cudaMemcpyHostToDevice) );
     
     cudnn_create();
-    cuConvFloat conv(
+    cuConvFloat conv_cu(
+        3, 3, 128, 128,
+        3, 128, 128,
+        3, 3
+    );
+    jhConvFloat conv_jh(
         3, 3, 128, 128,
         3, 128, 128,
         3, 3
@@ -31,7 +36,8 @@ int main(void) {
         0, 0, 0, 0, 0, 0, 0, 0, 0,
         -1, -1, -1, -1, 9, -1, -1, -1, -1
     };
-    conv.set_weights(filter);
+    conv_cu.set_weights(filter);
+    conv_jh.set_weights(filter);
 
     float* d_dy;
     std::vector<float> dy(3*1*128*128, 1);
@@ -39,8 +45,12 @@ int main(void) {
     cudaErrChk( cudaMemcpy(d_dy, dy.data(), sizeof(float)*3*1*128*128, cudaMemcpyHostToDevice) );
     cudaErrChk( cudaDeviceSynchronize() );
 
-    conv.forward(d_input);
-    conv.backward(d_dy);
+    conv_cu.forward(d_input);
+    conv_cu.backward(d_dy);
+
+
+    conv_jh.forward(d_input);
+    conv_jh.backward(d_dy);
 
     cudnn_destroy();
     return 0;       
