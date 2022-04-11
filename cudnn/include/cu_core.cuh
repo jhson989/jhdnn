@@ -24,8 +24,8 @@ void cudnn_destroy();
 class cuLayerFloat {
 
     protected:
-        cudnnTensorDescriptor_t desc_input;
-        cudnnTensorDescriptor_t desc_output;
+        cudnnTensorDescriptor_t desc_x;
+        cudnnTensorDescriptor_t desc_y;
         cudnnTensorDescriptor_t desc_dx;
         cudnnTensorDescriptor_t desc_dy;
         size_t bytes_workspace_forward;
@@ -34,20 +34,20 @@ class cuLayerFloat {
         /** Host memory **/
         float* h_dx;
         float* h_dy;
-        float* h_input;
-        float* h_output;
+        float* h_x;
+        float* h_y;
 
         /** Device memory **/
         float* d_workspace_forward;
         float* d_workspace_backward_data;
         float* d_dx;
         float* d_dy;
-        float* d_input;
-        float* d_output;
+        float* d_x;
+        float* d_y;
 
     public:
         cuLayerFloat(){};
         ~cuLayerFloat(){};
-        virtual void forward(float* input){};
+        virtual void forward(float* x){};
         virtual void backward(float* dy){};
 };

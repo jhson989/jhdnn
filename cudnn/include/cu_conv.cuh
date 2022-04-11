@@ -51,7 +51,7 @@ class cuConvFloat : public cuLayerFloat {
 
         ~cuConvFloat();
 
-        virtual void forward(float* input) override;
+        virtual void forward(float* x) override;
         virtual void backward(float* dy) override;
         void set_weights(float* filter_);
 
