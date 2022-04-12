@@ -179,6 +179,7 @@ void cuConvFloat::backward(float* dy) {
      *******************************************************************/
     
     const float alpha=1, beta=0;
+    cudaErrChk( cudaMemcpy(d_dy, dy, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToDevice) );
     cudnnErrChk( cudnnConvolutionBackwardData(*cudnn
                                         , /*ALPHA*/&alpha
                                         , /*KERNEL*/desc_filter, d_filter
@@ -187,6 +188,7 @@ void cuConvFloat::backward(float* dy) {
                                         , /*BETA*/&beta
                                         , /*dx*/desc_dx, d_dx
                                     ) );
+
     
     cudnnErrChk( cudnnConvolutionBackwardFilter(*cudnn
                                         , /*ALPHA*/&alpha

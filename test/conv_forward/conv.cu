@@ -11,8 +11,8 @@ int main(void) {
 
     // Input configuration
     const int BATCH_NUM=3, INPUT_C=3, INPUT_H=128, INPUT_W=128;
-    const int OUTPUT_C=23, FILTER_H=7, FILTER_W=7;
-    const int PAD_H=3, PAD_W=0;
+    const int OUTPUT_C=23, FILTER_H=5, FILTER_W=11;
+    const int PAD_H=3, PAD_W=1;
     const int STRIDE_H=1, STRIDE_W=1;
     int OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
     int OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
@@ -61,26 +61,24 @@ int main(void) {
     /*******************************************************************************
      * Check forward results
      ********************************************************************************/ 
-    float* cu_d_result = conv_cu.get_y();
-    float* jh_d_result = conv_jh.get_y();
 
     std::vector<float> cu_y(BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
-    cudaErrChk( cudaMemcpy(cu_y.data(), cu_d_result, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToHost) );
+    cudaErrChk( cudaMemcpy(cu_y.data(), conv_cu.get_y(), sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToHost) );
 
     std::vector<float> jh_y(BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
-    cudaErrChk( cudaMemcpy(jh_y.data(), jh_d_result, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToHost) );
+    cudaErrChk( cudaMemcpy(jh_y.data(), conv_jh.get_y(), sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToHost) );
     cudaErrChk( cudaDeviceSynchronize() );  
 
     bool check = true;
     for (int i=0; i<cu_y.size(); i++) {
         if( cu_y[i] != jh_y[i] ) {
             check = false;
-            printf("error!: cu[%d](%.3f) != jh[%d](%.3f)\n", i, cu_y[i], i, jh_y[i]);
+            printf("Forward : error!: cu[%d](%.3f) != jh[%d](%.3f)\n", i, cu_y[i], i, jh_y[i]);
             break;
         }
     }
     if (check) {
-        printf("No error!\n");
+        printf("Forward : no error!\n");
     }
     
 
@@ -97,6 +95,30 @@ int main(void) {
     conv_cu.backward(d_dy);
     conv_jh.backward(d_dy);
 
+    /*******************************************************************************
+     * Check backward dx results
+     ********************************************************************************/ 
+ 
+    std::vector<float> cu_dx(BATCH_NUM*INPUT_C*INPUT_H*INPUT_W);
+    cudaErrChk( cudaMemcpy(cu_dx.data(), conv_cu.get_dx(), sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W, cudaMemcpyDeviceToHost) );
+
+    std::vector<float> jh_dx(BATCH_NUM*INPUT_C*INPUT_H*INPUT_W);
+    cudaErrChk( cudaMemcpy(jh_dx.data(), conv_jh.get_dx(), sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W, cudaMemcpyDeviceToHost) );
+    cudaErrChk( cudaDeviceSynchronize() );  
+
+    check = true;
+    for (int i=0; i<cu_dx.size(); i++) {
+        if( cu_dx[i] != jh_dx[i] ) {
+            check = false;
+            printf("Backward : error!: cu[%d](%.3f) != jh[%d](%.3f)\n", i, cu_dx[i], i, jh_dx[i]);
+            break;
+        }
+    }
+    if (check) {
+        printf("Backward : no error!\n");
+    }
+     
+ 
 
 
     cudnn_destroy();
