@@ -10,10 +10,10 @@ int main(void) {
      ********************************************************************************/ 
 
     // Input configuration
-    const int BATCH_NUM=3, INPUT_C=3, INPUT_H=128, INPUT_W=128;
-    const int OUTPUT_C=23, FILTER_H=5, FILTER_W=11;
-    const int PAD_H=3, PAD_W=1;
-    const int STRIDE_H=1, STRIDE_W=1;
+    const int BATCH_NUM=3, INPUT_C=3, INPUT_H=127, INPUT_W=200;
+    const int OUTPUT_C=7, FILTER_H=4, FILTER_W=4;
+    const int PAD_H=2, PAD_W=1;
+    const int STRIDE_H=5, STRIDE_W=4;
     int OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
     int OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
 

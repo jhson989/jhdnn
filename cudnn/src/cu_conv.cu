@@ -16,6 +16,7 @@ cuConvFloat::cuConvFloat(
 {
     OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
     OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
+    printf("OUTPUT: [%d %d %d]\n", OUTPUT_C, OUTPUT_H, OUTPUT_W);
     /******************************************************************
      * 2. Describe Conv2D operands
      *    - Input tensor : size, layout

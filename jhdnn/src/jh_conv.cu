@@ -69,18 +69,18 @@ __global__ void __kernel_conv_backward_naive(
 
     if (in_c<INPUT_C && in_h<INPUT_H && in_w<INPUT_W) {
 
-        T value = 0;
-        int y = STRIDE_H*in_h-PAD_H;
-        int x = STRIDE_W*in_w-PAD_W;
-    
-        for (int c=0; c<INPUT_C; c++) {
+        T value = 0; 
+        int y = (in_h-FILTER_H+2*PAD_H)/STRIDE_H;
+        int x = (in_w-FILTER_W+2*PAD_W)/STRIDE_W;
+        for (int c=0; c<OUTPUT_C; c++) {
             for (int h=0;h<FILTER_H; h++) {
                 for (int w=0;w<FILTER_W; w++) {
     
 //                    if ( (0<=(y+h)&&(y+h)<INPUT_H) && (0<=(x+w)&&(x+w)<INPUT_W)  ) {
 //                        value += filter[out_c*(INPUT_C*FILTER_H*FILTER_W) + c*(FILTER_H*FILTER_W) + h*(FILTER_W) + w] * input[batch*(INPUT_C*INPUT_H*INPUT_W) + c*(INPUT_H*INPUT_W) + (y+h)*(INPUT_W) + (x+w)];
 //                    }
-    
+                    if ( (0<=(y+h)&&(y+h)<OUTPUT_H) && (0<=(x+w)&&(x+w)<OUTPUT_W)  ) {
+
                 }
             }
         }
@@ -109,6 +109,7 @@ jhConvFloat::jhConvFloat(
 {
     OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
     OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
+    printf("OUTPUT: [%d %d %d]\n", OUTPUT_C, OUTPUT_H, OUTPUT_W);
     /******************************************************************
      * 1. Allocate device memory
      *******************************************************************/
@@ -153,6 +154,11 @@ void jhConvFloat::forward(float* x) {
 
 void jhConvFloat::backward(float* dy) {
 
+    int WARP_SIZE = 16;
+    const dim3 dim_threads(WARP_SIZE, WARP_SIZE, 1);
+    const dim3 dim_blocks((INPUT_H*INPUT_W+WARP_SIZE-1)/WARP_SIZE, (INPUT_C+WARP_SIZE-1)/WARP_SIZE, BATCH_NUM);
+    __kernel_conv_backward_naive<<<dim_blocks, dim_threads>>> (dy, d_filter, d_dx, BATCH_NUM, INPUT_C,INPUT_H,INPUT_W, FILTER_H,FILTER_W, PAD_H,PAD_W, STRIDE_H,STRIDE_W, OUTPUT_C,OUTPUT_H,OUTPUT_W);
+    cudaErrChk( cudaDeviceSynchronize() );
 
 
 }
