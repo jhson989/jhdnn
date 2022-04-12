@@ -95,7 +95,7 @@ cuConvFloat::cuConvFloat(
     cudnnErrChk( cudnnGetConvolutionForwardWorkspaceSize(*cudnn, desc_x, desc_filter, desc_conv2d, desc_y, perf_conv2d_algo_forward.algo, &bytes_workspace_forward) );
     cudnnErrChk( cudnnGetConvolutionBackwardDataWorkspaceSize(*cudnn, desc_filter, desc_dy, desc_conv2d, desc_dx, perf_conv2d_algo_backward_data.algo, &bytes_workspace_backward_data) );
     cudnnErrChk( cudnnGetConvolutionBackwardFilterWorkspaceSize(*cudnn, desc_x, desc_dy, desc_conv2d, desc_dw, perf_conv2d_algo_backward_filter.algo, &bytes_workspace_backward_filter) );
-  
+    
     /******************************************************************
      * 5. Allocate memory
      *    - work-space
@@ -106,10 +106,6 @@ cuConvFloat::cuConvFloat(
     cudaErrChk (cudaMalloc (&d_workspace_backward_data, bytes_workspace_backward_data));
     cudaErrChk (cudaMalloc (&d_workspace_backward_filter, bytes_workspace_backward_filter));
  
-    //h_x = (float*) malloc(sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W);
-    //h_y = (float*) malloc(sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
-    //h_dx = (float*) malloc(sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W);
-    //h_dy = (float*) malloc(sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W);
     h_filter = (float*) malloc(sizeof(float)*OUTPUT_C*INPUT_C*FILTER_H*FILTER_W);
     cudaErrChk( cudaMalloc(&d_x, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W) );
     cudaErrChk( cudaMalloc(&d_y, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W) );
@@ -132,10 +128,6 @@ cuConvFloat::~cuConvFloat() {
     /******************************************************************
      * Finallize
      *******************************************************************/
-    //free (h_x);
-    //free (h_y);
-    //free (h_dx);
-    //free (h_dy);
     free (h_filter);
 
     cudaErrChk( cudaFree(d_workspace_forward) );
@@ -165,6 +157,9 @@ void cuConvFloat::forward(float* x) {
      * 6. Launch forward kernel
      *******************************************************************/
     const float alpha=1, beta=0;
+    
+    cudaErrChk( cudaMemcpy(d_x, x, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W, cudaMemcpyDeviceToDevice) );
+
     cudnnErrChk( cudnnConvolutionForward(*cudnn
                                         , /*ALPHA*/&alpha
                                         , /*INPUT*/desc_x, d_x
@@ -174,11 +169,6 @@ void cuConvFloat::forward(float* x) {
                                         , /*OUTPUT*/desc_y, d_y
                                     ) );
     cudaErrChk( cudaDeviceSynchronize() );
-
-    /******************************************************************
-     * 7. Get result
-     *******************************************************************/
-    //cudaErrChk( cudaMemcpy(h_y, d_y, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToHost) );
 
 }
 

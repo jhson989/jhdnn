@@ -25,4 +25,5 @@ public:
     ~jhLayerFloat(){};
     virtual void forward(float* x){};
     virtual void backward(float* dy){};
+    float* get_y() {return d_y;};
 };
