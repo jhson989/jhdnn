@@ -1,1 +1,1 @@
-# Custom dnn library compared with cudnn
+# Custom dnn Library via CUDA with Comparing Examples via cudnn
