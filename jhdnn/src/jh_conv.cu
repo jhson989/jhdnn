@@ -43,15 +43,16 @@ jhConvFloat::jhConvFloat(
 
     const int BATCH_NUM_, 
     const int INPUT_C_, const int INPUT_H_,const int INPUT_W_, 
-    const int OUTPUT_C_, const int OUTPUT_H_, const int OUTPUT_W_,
+    const int OUTPUT_C_,
     const int FILTER_H_, const int FILTER_W_, 
     const int PAD_H_, const int PAD_W_, 
     const int STRIDE_H_, const int STRIDE_W_,
     const int DILATION_H_, const int DILATION_W_
 
-) : BATCH_NUM(BATCH_NUM_), INPUT_C(INPUT_C_), INPUT_H(INPUT_H_), INPUT_W(INPUT_W_), FILTER_H(FILTER_H_), FILTER_W(FILTER_W_), PAD_H(PAD_H_), PAD_W(PAD_W_), STRIDE_H(STRIDE_H_), STRIDE_W(STRIDE_W_), OUTPUT_C(OUTPUT_C_), OUTPUT_H(OUTPUT_H_), OUTPUT_W(OUTPUT_W_), DILATION_H(DILATION_H_), DILATION_W(DILATION_W_)
+) : BATCH_NUM(BATCH_NUM_), INPUT_C(INPUT_C_), INPUT_H(INPUT_H_), INPUT_W(INPUT_W_), FILTER_H(FILTER_H_), FILTER_W(FILTER_W_), PAD_H(PAD_H_), PAD_W(PAD_W_), STRIDE_H(STRIDE_H_), STRIDE_W(STRIDE_W_), OUTPUT_C(OUTPUT_C_), DILATION_H(DILATION_H_), DILATION_W(DILATION_W_)
 {
-
+    OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
+    OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
     /******************************************************************
      * 1. Allocate device memory
      *******************************************************************/
