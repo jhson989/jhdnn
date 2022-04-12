@@ -70,16 +70,20 @@ __global__ void __kernel_conv_backward_naive(
     if (in_c<INPUT_C && in_h<INPUT_H && in_w<INPUT_W) {
 
         T value = 0; 
-        int y = (in_h-FILTER_H+2*PAD_H)/STRIDE_H;
-        int x = (in_w-FILTER_W+2*PAD_W)/STRIDE_W;
         for (int c=0; c<OUTPUT_C; c++) {
             for (int h=0;h<FILTER_H; h++) {
                 for (int w=0;w<FILTER_W; w++) {
-    
-//                    if ( (0<=(y+h)&&(y+h)<INPUT_H) && (0<=(x+w)&&(x+w)<INPUT_W)  ) {
-//                        value += filter[out_c*(INPUT_C*FILTER_H*FILTER_W) + c*(FILTER_H*FILTER_W) + h*(FILTER_W) + w] * input[batch*(INPUT_C*INPUT_H*INPUT_W) + c*(INPUT_H*INPUT_W) + (y+h)*(INPUT_W) + (x+w)];
-//                    }
-                    if ( (0<=(y+h)&&(y+h)<OUTPUT_H) && (0<=(x+w)&&(x+w)<OUTPUT_W)  ) {
+                    int y = ((in_h+PAD_H)%STRIDE_H != 0 ? (in_h+PAD_H)/STRIDE_H-1 : (in_h+PAD_H)/STRIDE_H) - h;
+                    int x = ((in_w+PAD_W)%STRIDE_W != 0 ? (in_w+PAD_W)/STRIDE_W-1 : (in_w+PAD_W)/STRIDE_W) - w;
+                    
+                    if ( (0<=y&&y<OUTPUT_H) && (0<=x&&x<OUTPUT_W) ) {
+
+                        if (in_h == 0 && in_w ==0)
+                            printf("%d %d: %d %d %f %f\n", y, x, h, w, filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + h*(FILTER_W) + w], value);
+
+
+                        value += filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + h*(FILTER_W) + w] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x];
+                    }
 
                 }
             }
@@ -147,7 +151,8 @@ void jhConvFloat::forward(float* x) {
     int WARP_SIZE = 16;
     const dim3 dim_threads(WARP_SIZE, WARP_SIZE, 1);
     const dim3 dim_blocks((OUTPUT_H*OUTPUT_W+WARP_SIZE-1)/WARP_SIZE, (OUTPUT_C+WARP_SIZE-1)/WARP_SIZE, BATCH_NUM);
-    __kernel_conv_forward_naive<<<dim_blocks, dim_threads>>> (x, d_filter, d_y, BATCH_NUM, INPUT_C,INPUT_H,INPUT_W, FILTER_H,FILTER_W, PAD_H,PAD_W, STRIDE_H,STRIDE_W, OUTPUT_C,OUTPUT_H,OUTPUT_W);
+    cudaErrChk( cudaMemcpy(d_x, x, sizeof(float)*BATCH_NUM*INPUT_C*INPUT_H*INPUT_W, cudaMemcpyDeviceToDevice) );
+    __kernel_conv_forward_naive<<<dim_blocks, dim_threads>>> (d_x, d_filter, d_y, BATCH_NUM, INPUT_C,INPUT_H,INPUT_W, FILTER_H,FILTER_W, PAD_H,PAD_W, STRIDE_H,STRIDE_W, OUTPUT_C,OUTPUT_H,OUTPUT_W);
     cudaErrChk( cudaDeviceSynchronize() );
 
 }
@@ -157,7 +162,8 @@ void jhConvFloat::backward(float* dy) {
     int WARP_SIZE = 16;
     const dim3 dim_threads(WARP_SIZE, WARP_SIZE, 1);
     const dim3 dim_blocks((INPUT_H*INPUT_W+WARP_SIZE-1)/WARP_SIZE, (INPUT_C+WARP_SIZE-1)/WARP_SIZE, BATCH_NUM);
-    __kernel_conv_backward_naive<<<dim_blocks, dim_threads>>> (dy, d_filter, d_dx, BATCH_NUM, INPUT_C,INPUT_H,INPUT_W, FILTER_H,FILTER_W, PAD_H,PAD_W, STRIDE_H,STRIDE_W, OUTPUT_C,OUTPUT_H,OUTPUT_W);
+    cudaErrChk( cudaMemcpy(d_dy, dy, sizeof(float)*BATCH_NUM*OUTPUT_C*OUTPUT_H*OUTPUT_W, cudaMemcpyDeviceToDevice) );
+    __kernel_conv_backward_naive<<<dim_blocks, dim_threads>>> (d_dy, d_filter, d_dx, BATCH_NUM, INPUT_C,INPUT_H,INPUT_W, FILTER_H,FILTER_W, PAD_H,PAD_W, STRIDE_H,STRIDE_W, OUTPUT_C,OUTPUT_H,OUTPUT_W);
     cudaErrChk( cudaDeviceSynchronize() );
 
 
