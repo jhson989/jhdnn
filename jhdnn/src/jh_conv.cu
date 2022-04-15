@@ -79,10 +79,8 @@ __global__ void __kernel_conv_backward_naive(
                     int y = (in_h-LEN_FILTER_H+PAD_H-h)/STRIDE_H;
                     int x = (in_w-LEN_FILTER_W+PAD_W-w)/STRIDE_W;
 
-                    if ( (0<=(y)&&(y)<OUTPUT_H) && (0<=(x)&&(x)<OUTPUT_W) ) {
-                        if ((in_h-LEN_FILTER_H+PAD_H-h) % STRIDE_H == 0 && (in_w-LEN_FILTER_W+PAD_W-w) % STRIDE_W == 0)
-                            value += (filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + (h+LEN_FILTER_H)*(FILTER_W) + (w+LEN_FILTER_W)] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x]);
-
+                    if ( (0<=y&&y<OUTPUT_H) && (0<=x&&x<OUTPUT_W) && (in_h-LEN_FILTER_H+PAD_H-h) % STRIDE_H == 0 && (in_w-LEN_FILTER_W+PAD_W-w) % STRIDE_W == 0) {
+                        value += (filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + (h+LEN_FILTER_H)*(FILTER_W) + (w+LEN_FILTER_W)] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x]);
                     }
 
                 }

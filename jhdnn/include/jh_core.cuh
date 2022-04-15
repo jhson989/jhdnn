@@ -8,12 +8,6 @@
 
 protected:
 
-    /** Host memory **/
-    float* h_dx;
-    float* h_dy;
-    float* h_x;
-    float* h_y;
-
     /** Device memory **/
     float* d_dx;
     float* d_dy;

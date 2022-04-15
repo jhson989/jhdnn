@@ -16,7 +16,7 @@ set(LIB_NAME jhdnn)
 # Global include
 set(PATH_INC ./include)
 set(INC_FILES 
-    "./include/jhdnn.cuh\;cudnn/include/cu_core.cuh\;cudnn/include/cu_conv.cuh\;jhdnn/include/jh_core.cuh\;jhdnn/include/jh_conv.cuh"
+    "./include/jhdnn.cuh\;cudnn/include/cu_core.cuh\;cudnn/include/cu_conv.cuh\;cudnn/include/cu_linear.cuh\;jhdnn/include/jh_core.cuh\;jhdnn/include/jh_conv.cuh"
 )
 
 # cudnn include
@@ -24,6 +24,7 @@ set(PATH_CUDNN_INC ./cudnn/include)
 set(SRC_CUDNN_FILES
     cudnn/src/cu_core.cu
     cudnn/src/cu_conv.cu
+    cudnn/src/cu_linear.cu
 )
 
 # jhdnn include
@@ -56,3 +57,4 @@ install(
 )
 
 add_subdirectory(test)
+

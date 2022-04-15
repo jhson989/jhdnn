@@ -25,8 +25,10 @@ void cudnn_create() {
     /******************************************************************
      * 1. Define cudnn Handler
      *******************************************************************/
-    cudnn = new cudnnHandle_t;
-    cudnnErrChk( cudnnCreate(cudnn) );
+    if (cudnn == nullptr) {
+        cudnn = new cudnnHandle_t;
+        cudnnErrChk( cudnnCreate(cudnn) );
+    }
 };
 
 void cudnn_destroy() {
