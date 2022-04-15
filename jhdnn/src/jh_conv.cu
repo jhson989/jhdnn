@@ -66,20 +66,22 @@ __global__ void __kernel_conv_backward_naive(
     int in_hw = blockIdx.x * blockDim.x + threadIdx.x;
     int in_h = in_hw/INPUT_W;
     int in_w = in_hw%INPUT_W;
+    int LEN_FILTER_H = (FILTER_H-1)/2;
+    int LEN_FILTER_W = (FILTER_W-1)/2;
 
     if (in_c<INPUT_C && in_h<INPUT_H && in_w<INPUT_W) {
 
         T value = 0; 
         for (int c=0; c<OUTPUT_C; c++) {
-            for (int h=-(FILTER_H-1)/2;h<=FILTER_H/2; h++) {
-                for (int w=-(FILTER_W-1)/2;w<=FILTER_W/2; w++) {
+            for (int h=-LEN_FILTER_H;h<=FILTER_H>>1; h++) {
+                for (int w=-LEN_FILTER_W;w<=FILTER_W>>1; w++) {
 
-                    int y = (in_h-((FILTER_H-1)/2)+PAD_H-h)/STRIDE_H;
-                    int x = (in_w-((FILTER_W-1)/2)+PAD_W-w)/STRIDE_W;
+                    int y = (in_h-LEN_FILTER_H+PAD_H-h)/STRIDE_H;
+                    int x = (in_w-LEN_FILTER_W+PAD_W-w)/STRIDE_W;
 
                     if ( (0<=(y)&&(y)<OUTPUT_H) && (0<=(x)&&(x)<OUTPUT_W) ) {
-                        if ((in_h-((FILTER_H-1)/2)+PAD_H-h) % STRIDE_H == 0 && (in_w-((FILTER_W-1)/2)+PAD_W-w) % STRIDE_W == 0)
-                            value += (filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + (h+(FILTER_H-1)/2)*(FILTER_W) + (w+(FILTER_W-1)/2)] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x]);
+                        if ((in_h-LEN_FILTER_H+PAD_H-h) % STRIDE_H == 0 && (in_w-LEN_FILTER_W+PAD_W-w) % STRIDE_W == 0)
+                            value += (filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + (h+LEN_FILTER_H)*(FILTER_W) + (w+LEN_FILTER_W)] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x]);
 
                     }
 
@@ -111,7 +113,6 @@ jhConvFloat::jhConvFloat(
 {
     OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
     OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
-    printf("OUTPUT: [%d %d %d]\n", OUTPUT_C, OUTPUT_H, OUTPUT_W);
     /******************************************************************
      * 1. Allocate device memory
      *******************************************************************/

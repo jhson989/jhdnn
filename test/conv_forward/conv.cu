@@ -118,20 +118,6 @@ int main(void) {
     if (check) {
         printf("Backward : no error!\n");
     }
-     
-    /*
-    for (int i=0; i<filter.size(); i++)
-        printf("%.2f ", filter[i]);
-    printf("\n");
-
-    for (int i=0; i<cu_dx.size(); i++)
-        printf("%.2f ", cu_dx[i]);
-    printf("\n");
-
-    for (int i=0; i<jh_dx.size(); i++)
-        printf("%.2f ", jh_dx[i]);
-    printf("\n");
-    */
 
     cudnn_destroy();
     return 0;       
