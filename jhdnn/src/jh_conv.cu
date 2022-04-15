@@ -71,15 +71,15 @@ __global__ void __kernel_conv_backward_naive(
 
         T value = 0; 
         for (int c=0; c<OUTPUT_C; c++) {
-            for (int h=-FILTER_H/2;h<=FILTER_H/2; h++) {
-                for (int w=-FILTER_W/2;w<=FILTER_W/2; w++) {
+            for (int h=-(FILTER_H-1)/2;h<=FILTER_H/2; h++) {
+                for (int w=-(FILTER_W-1)/2;w<=FILTER_W/2; w++) {
 
-                    int y = (in_h-(FILTER_H/2)+PAD_H-h)/STRIDE_H;
-                    int x = (in_w-(FILTER_W/2)+PAD_W-w)/STRIDE_W;
+                    int y = (in_h-((FILTER_H-1)/2)+PAD_H-h)/STRIDE_H;
+                    int x = (in_w-((FILTER_W-1)/2)+PAD_W-w)/STRIDE_W;
 
                     if ( (0<=(y)&&(y)<OUTPUT_H) && (0<=(x)&&(x)<OUTPUT_W) ) {
-                        if ((in_h-(FILTER_H/2)+PAD_H-h) % STRIDE_H == 0 && (in_w-(FILTER_W/2)+PAD_W-w) % STRIDE_W == 0)
-                            value += (filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + (h+FILTER_H/2)*(FILTER_W) + (w+FILTER_W/2)] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x]);
+                        if ((in_h-((FILTER_H-1)/2)+PAD_H-h) % STRIDE_H == 0 && (in_w-((FILTER_W-1)/2)+PAD_W-w) % STRIDE_W == 0)
+                            value += (filter[c*(INPUT_C*FILTER_H*FILTER_W) + in_c*(FILTER_H*FILTER_W) + (h+(FILTER_H-1)/2)*(FILTER_W) + (w+(FILTER_W-1)/2)] * dy[batch*(OUTPUT_C*OUTPUT_H*OUTPUT_W) + c*(OUTPUT_H*OUTPUT_W) + y*(OUTPUT_W) + x]);
 
                     }
 
