@@ -10,10 +10,10 @@ int main(void) {
      ********************************************************************************/ 
 
     // Input configuration
-    const int BATCH_NUM=1, INPUT_C=1, INPUT_H=3, INPUT_W=3;
-    const int OUTPUT_C=1, FILTER_H=3, FILTER_W=3;
-    const int PAD_H=1, PAD_W=1;
-    const int STRIDE_H=3, STRIDE_W=1;
+    const int BATCH_NUM=1, INPUT_C=4, INPUT_H=15, INPUT_W=10;
+    const int OUTPUT_C=3, FILTER_H=3, FILTER_W=5;
+    const int PAD_H=2, PAD_W=4;
+    const int STRIDE_H=3, STRIDE_W=2;
     int OUTPUT_H=(INPUT_H-FILTER_H+2*PAD_H)/STRIDE_H + 1;
     int OUTPUT_W=(INPUT_W-FILTER_W+2*PAD_W)/STRIDE_W + 1;
 
@@ -119,18 +119,19 @@ int main(void) {
         printf("Backward : no error!\n");
     }
      
- 
+    /*
     for (int i=0; i<filter.size(); i++)
         printf("%.2f ", filter[i]);
     printf("\n");
 
-    for (int i=0; i<filter.size(); i++)
+    for (int i=0; i<cu_dx.size(); i++)
         printf("%.2f ", cu_dx[i]);
     printf("\n");
 
-    for (int i=0; i<filter.size(); i++)
+    for (int i=0; i<jh_dx.size(); i++)
         printf("%.2f ", jh_dx[i]);
     printf("\n");
+    */
 
     cudnn_destroy();
     return 0;       
